@@ -1,6 +1,22 @@
 service: sls-notes-backend
 frameworkVersion: '2'
 
+plugins:
+  - serverless-offline
+
+custom:
+  allowedHeaders:
+    - Accept
+    - Content-Type
+    - Content-Length
+    - Authorization
+    - X-Amz-Date
+    - X-Api-Key
+    - X-Amz-Security-Token 
+    - X-Amz-User-Agent
+    - app_user_id
+    - app_user_name
+
 provider:
   name: aws
   runtime: python3.8
@@ -12,6 +28,73 @@ provider:
   endpointType: regional
   environment:
     NOTES_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  layers:
+    -  arn:aws:lambda:{region}:017000801446:layer:AWSLambdaPowertoolsPythonV2-Arm64:24
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:Query
+        - dynamodb:DeleteItem
+      Resource:
+        - !GetAtt NotesTable.Arn
+
+functions:
+  add-note:
+    handler: api/add_note.add_note
+    description: POST /note
+    events:
+      - http:
+          path: note
+          method: post
+          cors:
+            origin: '*'
+            headers: ${self:custom.allowedHeaders}
+
+  update-note:
+    handler: api/update_note.update_note
+    description: PATCH /note
+    events:
+      - http:
+          path: note
+          method: patch
+          cors:
+            origin: '*'
+            headers: ${self:custom.allowedHeaders}
+
+  delete-note:
+    handler: api/delete_notes.delete_note
+    description: DELETE /note
+    events:
+      - http:
+          path: note/t/{timestamp}
+          method: post
+          cors:
+            origin: '*'
+            headers: ${self:custom.allowedHeaders}
+
+  get-note:
+    handler: api/get_note.get_note
+    description: GET /note/n/{notes_id}
+    events:
+      - http:
+          path: /note/n/{notes_id}
+          method: get
+          cors:
+            origin: '*'
+            headers: ${self:custom.allowedHeaders}
+
+  get-notes:
+    handler: api/get_notes.get_notes
+    description: GET /notes
+    events:
+      - http:
+          path: note
+          method: get
+          cors:
+            origin: '*'
+            headers: ${self:custom.allowedHeaders}
+
 
 
 resources:
