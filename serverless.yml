@@ -13,9 +13,6 @@ provider:
   environment:
     NOTES_TABLE: ${self:service}-${opt:stage, self:provider.stage}
 
-# functions:
-#   hello:
-#     handler: handler.hello
 
 resources:
   Resources:
