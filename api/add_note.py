@@ -17,7 +17,8 @@ table = dynamodb.Table(os.environ['NOTES_TABLE'])
 @logger.inject_lambda_context
 def add_note(event, context):
     logger.info(event)
-    item = json.loads(event.get('body'))
+    body = json.loads(event.get('body'))
+    item = body.get('item',{})
     item['user_id'] = util.get_user_id(event['headers'])
     item['user_name'] = util.get_user_name(event['headers'])
     item['notes_id'] = item['user_id'] + ':' + uuid.uuid4()
